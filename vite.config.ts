@@ -56,37 +56,27 @@ export default defineConfig({
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            // CRITICAL: React and React-DOM must be bundled together
-            // and loaded first before any other React-dependent packages
-            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-              // Exclude React-dependent packages that should be in their own chunks
-              if (id.includes('react-day-picker') || 
-                  id.includes('react-hook-form') || 
-                  id.includes('react-resizable-panels') ||
-                  id.includes('@radix-ui')) {
-                return null; // Let other rules handle these
-              }
+            // Strategy: Bundle React core with ALL React-dependent packages
+            // This ensures React is always available when needed
+            if (id.includes('node_modules/react') || 
+                id.includes('node_modules/react-dom') ||
+                id.includes('node_modules/@radix-ui') ||
+                id.includes('node_modules/react-day-picker') ||
+                id.includes('node_modules/react-hook-form') ||
+                id.includes('node_modules/react-resizable-panels') ||
+                id.includes('node_modules/next-themes') ||
+                id.includes('node_modules/embla-carousel-react') ||
+                id.includes('node_modules/cmdk') ||
+                id.includes('node_modules/sonner') ||
+                id.includes('node_modules/vaul') ||
+                id.includes('node_modules/input-otp') ||
+                id.includes('node_modules/tailwind-merge') ||
+                id.includes('node_modules/clsx') ||
+                id.includes('node_modules/class-variance-authority')) {
               return 'react-vendor';
             }
             
-            // Put React-dependent packages in their own chunks to ensure proper loading order
-            if (id.includes('node_modules/@radix-ui')) {
-              return 'radix-ui';
-            }
-            
-            if (id.includes('node_modules/react-day-picker')) {
-              return 'react-day-picker';
-            }
-            
-            if (id.includes('node_modules/react-hook-form')) {
-              return 'react-hook-form';
-            }
-            
-            if (id.includes('node_modules/react-resizable-panels')) {
-              return 'react-resizable-panels';
-            }
-            
-            // Split large libraries into their own chunks
+            // Split large non-React libraries into their own chunks
             if (id.includes('node_modules/recharts')) {
               return 'recharts';
             }
@@ -103,16 +93,7 @@ export default defineConfig({
               return 'date-fns';
             }
             
-            // React-dependent packages that should load after React
-            if (id.includes('node_modules/next-themes') ||
-                id.includes('node_modules/embla-carousel-react') ||
-                id.includes('node_modules/cmdk') ||
-                id.includes('node_modules/sonner') ||
-                id.includes('node_modules/vaul')) {
-              return 'react-deps';
-            }
-            
-            // Group other non-React node_modules into a vendor chunk
+            // Only pure utility libraries that don't touch React go in vendor
             if (id.includes('node_modules')) {
               return 'vendor';
             }
