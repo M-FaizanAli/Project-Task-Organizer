@@ -3,8 +3,9 @@
   import react from '@vitejs/plugin-react-swc';
   import path from 'path';
 
-  export default defineConfig({
-    plugins: [react()],
+export default defineConfig({
+  base: '/',
+  plugins: [react()],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
@@ -55,14 +56,34 @@
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            // Split React and React DOM into their own chunk
+            // CRITICAL: React and React-DOM must be bundled together
+            // and loaded first before any other React-dependent packages
             if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              // Exclude React-dependent packages that should be in their own chunks
+              if (id.includes('react-day-picker') || 
+                  id.includes('react-hook-form') || 
+                  id.includes('react-resizable-panels') ||
+                  id.includes('@radix-ui')) {
+                return null; // Let other rules handle these
+              }
               return 'react-vendor';
             }
             
-            // Split all Radix UI components into one chunk
+            // Put React-dependent packages in their own chunks to ensure proper loading order
             if (id.includes('node_modules/@radix-ui')) {
               return 'radix-ui';
+            }
+            
+            if (id.includes('node_modules/react-day-picker')) {
+              return 'react-day-picker';
+            }
+            
+            if (id.includes('node_modules/react-hook-form')) {
+              return 'react-hook-form';
+            }
+            
+            if (id.includes('node_modules/react-resizable-panels')) {
+              return 'react-resizable-panels';
             }
             
             // Split large libraries into their own chunks
@@ -82,20 +103,25 @@
               return 'date-fns';
             }
             
-            if (id.includes('node_modules/react-day-picker')) {
-              return 'react-day-picker';
+            // React-dependent packages that should load after React
+            if (id.includes('node_modules/next-themes') ||
+                id.includes('node_modules/embla-carousel-react') ||
+                id.includes('node_modules/cmdk') ||
+                id.includes('node_modules/sonner') ||
+                id.includes('node_modules/vaul')) {
+              return 'react-deps';
             }
             
-            if (id.includes('node_modules/react-hook-form')) {
-              return 'react-hook-form';
-            }
-            
-            // Group other node_modules into a vendor chunk
+            // Group other non-React node_modules into a vendor chunk
             if (id.includes('node_modules')) {
               return 'vendor';
             }
           },
         },
+      },
+      commonjsOptions: {
+        include: [/node_modules/],
+        transformMixedEsModules: true,
       },
       chunkSizeWarningLimit: 1000, // Increase limit to 1000 KB (optional)
     },
