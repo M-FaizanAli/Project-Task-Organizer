@@ -52,6 +52,52 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            // Split React and React DOM into their own chunk
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'react-vendor';
+            }
+            
+            // Split all Radix UI components into one chunk
+            if (id.includes('node_modules/@radix-ui')) {
+              return 'radix-ui';
+            }
+            
+            // Split large libraries into their own chunks
+            if (id.includes('node_modules/recharts')) {
+              return 'recharts';
+            }
+            
+            if (id.includes('node_modules/motion') || id.includes('node_modules/framer-motion')) {
+              return 'motion';
+            }
+            
+            if (id.includes('node_modules/lucide-react')) {
+              return 'lucide-icons';
+            }
+            
+            if (id.includes('node_modules/date-fns')) {
+              return 'date-fns';
+            }
+            
+            if (id.includes('node_modules/react-day-picker')) {
+              return 'react-day-picker';
+            }
+            
+            if (id.includes('node_modules/react-hook-form')) {
+              return 'react-hook-form';
+            }
+            
+            // Group other node_modules into a vendor chunk
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000, // Increase limit to 1000 KB (optional)
     },
     server: {
       port: 3000,
