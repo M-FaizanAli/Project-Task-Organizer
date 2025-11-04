@@ -51,7 +51,7 @@
     },
     build: {
       target: 'esnext',
-      outDir: 'build',
+      outDir: 'dist',
       rollupOptions: {
         output: {
           manualChunks: (id) => {
